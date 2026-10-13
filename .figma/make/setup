@@ -1,0 +1,8 @@
+#!/usr/bin/env bash
+# First-open setup. System-level dependencies only (cached after first run).
+# Node/npm are provided by the host, so there is nothing to install here.
+set -euo pipefail
+
+echo "node: $(node --version)"
+echo "npm:  $(npm --version)"
+echo "setup: nothing to install (using host-provided Node toolchain)"

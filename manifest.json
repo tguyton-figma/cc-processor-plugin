@@ -1,0 +1,23 @@
+{
+  "name": "cc-processor",
+  "id": "e41b0b63-6abc-4683-875b-2f03b37283d5",
+  "api": "1.0.0",
+  "main": "code.js",
+  "ui": "ui.html",
+  "documentAccess": "dynamic-page",
+  "editorType": ["figma", "dev"],
+  "capabilities": ["inspect"],
+  "networkAccess": {
+    "allowedDomains": ["https://api.figma.com", "https://fde.figma.site"],
+    "reasoning": "api.figma.com validates the REST API PLANT when configuring the plugin. fde.figma.site is the reference backend the plugin can authenticate to over OAuth (PKCE) for the optional AI transform and REST publish features — see DEFAULT_BACKEND_PROFILE in src/transformer/profile.ts and docs/backend-integration.md. This allowlist is STATIC — Figma reads it at publish time and there is no runtime API to add a domain. To point the plugin at your own backend, add that backend's origin here AND set it as the connector's baseUrl (Environment view → Advanced). Feature routes (transform run, Variables publish) are paths on that one origin, so they need no extra allowlist entries; a feature on a genuinely different origin is a second connector and needs its own entry. Any request to an origin not listed here is denied by the sandbox; the UI catches that denial and tells the user to update this manifest."
+  },
+  "menu": [
+    {
+      "name": "Open cc-processor",
+      "command": "process"
+    }
+  ],
+  "relaunchButtons": [
+    { "command": "template", "name": "Edit template" }
+  ]
+}

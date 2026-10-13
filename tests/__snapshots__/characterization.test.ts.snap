@@ -1,0 +1,307 @@
+// Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
+
+exports[`validate() corpus fingerprint > empty.figma.ts 1`] = `
+{
+  "comments": 4,
+  "errors": 3,
+  "rules": [
+    "comment:ext.componentMissing",
+    "comment:ext.labelHint",
+    "comment:ext.languageHint",
+    "comment:ext.sourceMissing",
+    "error:export.missing",
+    "error:figmaImport.missing",
+    "error:url.missing",
+  ],
+  "state": "error",
+}
+`;
+
+exports[`validate() corpus fingerprint > example-empty.figma.ts 1`] = `
+{
+  "comments": 1,
+  "errors": 1,
+  "rules": [
+    "comment:ext.languageHint",
+    "error:example.empty",
+  ],
+  "state": "error",
+}
+`;
+
+exports[`validate() corpus fingerprint > example-not-code.figma.ts 1`] = `
+{
+  "comments": 1,
+  "errors": 1,
+  "rules": [
+    "comment:ext.languageHint",
+    "error:format.exampleNotCode",
+  ],
+  "state": "error",
+}
+`;
+
+exports[`validate() corpus fingerprint > ext-headers-missing.figma.ts 1`] = `
+{
+  "comments": 4,
+  "errors": 0,
+  "rules": [
+    "comment:ext.componentMissing",
+    "comment:ext.labelHint",
+    "comment:ext.languageHint",
+    "comment:ext.sourceMissing",
+  ],
+  "state": "comment",
+}
+`;
+
+exports[`validate() corpus fingerprint > id-not-kebab.figma.ts 1`] = `
+{
+  "comments": 2,
+  "errors": 0,
+  "rules": [
+    "comment:ext.idNaming",
+    "comment:ext.languageHint",
+  ],
+  "state": "comment",
+}
+`;
+
+exports[`validate() corpus fingerprint > imports-not-string-array.figma.ts 1`] = `
+{
+  "comments": 1,
+  "errors": 1,
+  "rules": [
+    "comment:ext.languageHint",
+    "error:imports.notStringArray",
+  ],
+  "state": "error",
+}
+`;
+
+exports[`validate() corpus fingerprint > metadata-bad-nestable.figma.ts 1`] = `
+{
+  "comments": 2,
+  "errors": 0,
+  "rules": [
+    "comment:ext.languageHint",
+    "comment:metadata.nestableType",
+  ],
+  "state": "comment",
+}
+`;
+
+exports[`validate() corpus fingerprint > metadata-bad-props.figma.ts 1`] = `
+{
+  "comments": 2,
+  "errors": 0,
+  "rules": [
+    "comment:ext.languageHint",
+    "comment:metadata.propsType",
+  ],
+  "state": "comment",
+}
+`;
+
+exports[`validate() corpus fingerprint > missing-example.figma.ts 1`] = `
+{
+  "comments": 1,
+  "errors": 1,
+  "rules": [
+    "comment:ext.languageHint",
+    "error:example.missing",
+  ],
+  "state": "error",
+}
+`;
+
+exports[`validate() corpus fingerprint > missing-export.figma.ts 1`] = `
+{
+  "comments": 1,
+  "errors": 1,
+  "rules": [
+    "comment:ext.languageHint",
+    "error:export.missing",
+  ],
+  "state": "error",
+}
+`;
+
+exports[`validate() corpus fingerprint > missing-id.figma.ts 1`] = `
+{
+  "comments": 1,
+  "errors": 1,
+  "rules": [
+    "comment:ext.languageHint",
+    "error:id.missing",
+  ],
+  "state": "error",
+}
+`;
+
+exports[`validate() corpus fingerprint > missing-import.figma.ts 1`] = `
+{
+  "comments": 1,
+  "errors": 1,
+  "rules": [
+    "comment:ext.languageHint",
+    "error:figmaImport.missing",
+  ],
+  "state": "error",
+}
+`;
+
+exports[`validate() corpus fingerprint > missing-url.figma.ts 1`] = `
+{
+  "comments": 1,
+  "errors": 1,
+  "rules": [
+    "comment:ext.languageHint",
+    "error:url.missing",
+  ],
+  "state": "error",
+}
+`;
+
+exports[`validate() corpus fingerprint > multi-example.figma.ts 1`] = `
+{
+  "comments": 2,
+  "errors": 0,
+  "rules": [
+    "comment:ext.languageHint",
+    "comment:pitfall.undefinedInterpolation",
+  ],
+  "state": "comment",
+}
+`;
+
+exports[`validate() corpus fingerprint > parser-connect.figma.ts 1`] = `
+{
+  "comments": 1,
+  "errors": 2,
+  "rules": [
+    "comment:ext.languageHint",
+    "error:export.missing",
+    "error:format.parserConnect",
+  ],
+  "state": "error",
+}
+`;
+
+exports[`validate() corpus fingerprint > pitfall-children.figma.ts 1`] = `
+{
+  "comments": 2,
+  "errors": 0,
+  "rules": [
+    "comment:ext.languageHint",
+    "comment:pitfall.childrenMisuse",
+  ],
+  "state": "comment",
+}
+`;
+
+exports[`validate() corpus fingerprint > pitfall-interleaved.figma.ts 1`] = `
+{
+  "comments": 2,
+  "errors": 0,
+  "rules": [
+    "comment:ext.languageHint",
+    "comment:pitfall.interleavedResults",
+  ],
+  "state": "comment",
+}
+`;
+
+exports[`validate() corpus fingerprint > pitfall-raw-props.figma.ts 1`] = `
+{
+  "comments": 3,
+  "errors": 0,
+  "rules": [
+    "comment:ext.languageHint",
+    "comment:pitfall.rawPropAccess",
+    "comment:pitfall.undefinedInterpolation",
+  ],
+  "state": "comment",
+}
+`;
+
+exports[`validate() corpus fingerprint > pitfall-result-stringified.figma.ts 1`] = `
+{
+  "comments": 2,
+  "errors": 0,
+  "rules": [
+    "comment:ext.languageHint",
+    "comment:pitfall.resultStringified",
+  ],
+  "state": "comment",
+}
+`;
+
+exports[`validate() corpus fingerprint > pitfall-undefined-interp.figma.ts 1`] = `
+{
+  "comments": 2,
+  "errors": 0,
+  "rules": [
+    "comment:ext.languageHint",
+    "comment:pitfall.undefinedInterpolation",
+  ],
+  "state": "comment",
+}
+`;
+
+exports[`validate() corpus fingerprint > url-no-nodeid.figma.ts 1`] = `
+{
+  "comments": 1,
+  "errors": 1,
+  "rules": [
+    "comment:ext.languageHint",
+    "error:url.noNodeId",
+  ],
+  "state": "error",
+}
+`;
+
+exports[`validate() corpus fingerprint > url-not-figma.figma.ts 1`] = `
+{
+  "comments": 1,
+  "errors": 1,
+  "rules": [
+    "comment:ext.languageHint",
+    "error:url.notFigma",
+  ],
+  "state": "error",
+}
+`;
+
+exports[`validate() corpus fingerprint > valid-clean.figma.ts 1`] = `
+{
+  "comments": 1,
+  "errors": 0,
+  "rules": [
+    "comment:ext.languageHint",
+  ],
+  "state": "comment",
+}
+`;
+
+exports[`validate() corpus fingerprint > valid-tsx-tag.figma.ts 1`] = `
+{
+  "comments": 1,
+  "errors": 0,
+  "rules": [
+    "comment:ext.languageHint",
+  ],
+  "state": "comment",
+}
+`;
+
+exports[`validate() corpus fingerprint > valid-with-accessors.figma.ts 1`] = `
+{
+  "comments": 1,
+  "errors": 0,
+  "rules": [
+    "comment:ext.languageHint",
+  ],
+  "state": "comment",
+}
+`;

@@ -1,0 +1,22 @@
+#!/usr/bin/env bash
+# Verify the dev server is up and serving the plugin UI.
+set -euo pipefail
+
+cd "$(dirname "$0")/../.."
+
+set -a
+. ./.figma/make/env
+set +a
+
+url="http://127.0.0.1:${PORT}/ui.html"
+
+for _ in $(seq 1 30); do
+  if curl -fsS "$url" >/dev/null 2>&1; then
+    echo "dev server reachable at $url"
+    exit 0
+  fi
+  sleep 1
+done
+
+echo "dev server did not become reachable at $url" >&2
+exit 1

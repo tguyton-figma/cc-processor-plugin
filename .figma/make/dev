@@ -1,0 +1,13 @@
+#!/usr/bin/env bash
+# Dev server: bundles the plugin main thread (code.ts -> code.js), rebuilds on
+# change, and serves the plugin folder so ui.html is viewable in the preview.
+set -euo pipefail
+
+cd "$(dirname "$0")/../.."
+
+# Load PORT / FIGMA_MAKE_URL.
+set -a
+. ./.figma/make/env
+set +a
+
+exec node .figma/make/dev-server.mjs

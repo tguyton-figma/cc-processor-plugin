@@ -1,0 +1,12 @@
+#!/usr/bin/env bash
+# Install project dependencies. Runs on every project open.
+set -euo pipefail
+
+# Resolve repo root (two levels up from .figma/make/).
+cd "$(dirname "$0")/../.."
+
+if [ -f package-lock.json ]; then
+  npm ci
+else
+  npm install
+fi

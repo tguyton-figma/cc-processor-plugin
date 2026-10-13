@@ -1,0 +1,299 @@
+<!doctype html>
+<html lang="en">
+  <!--
+    Mock host for the plugin UI — served by the dev server at /.figma/make/mock.html
+    (or the convenience redirect /mock.html at repo root).
+
+    Figma runs ui.html inside an iframe and drives it from the main thread (code.ts)
+    over postMessage. This page plays that main-thread role with fixture data so the
+    populated UI is viewable in a plain browser — for design extraction into Figma and
+    last-mile UI review — WITHOUT touching ui.html or needing Figma.
+
+      host → iframe : { pluginMessage: { type: 'pipeline-state', ... } }   (fixtures)
+      iframe → host : { pluginMessage: { type: 'run-get-draft', ... } }    (requests)
+
+    mock.html and ui.html are same-origin (both off the dev server), so the view
+    switcher can click the iframe's own Nav rail rather than inventing a new message.
+  -->
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>cc-processor — UI mock</title>
+    <style>
+      :root { color-scheme: dark; }
+      * { box-sizing: border-box; }
+      body {
+        margin: 0; min-height: 100vh; background: #1a1a1a;
+        font: 12px/1.4 -apple-system, BlinkMacSystemFont, 'Segoe UI', Inter, sans-serif;
+        color: #b3b3b3; display: flex; flex-direction: column; align-items: center;
+        gap: 20px; padding: 24px 16px 48px;
+      }
+      .bar {
+        display: flex; flex-wrap: wrap; align-items: center; gap: 8px;
+        padding: 10px 12px; background: #292929; border: 1px solid #383838;
+        border-radius: 10px; box-shadow: 0 2px 8px rgba(0,0,0,.35);
+      }
+      .bar strong { color: #e6e6e6; font-weight: 600; margin-right: 4px; }
+      .bar .sep { width: 1px; align-self: stretch; background: #3a3a3a; margin: 0 4px; }
+      button.v {
+        appearance: none; border: 1px solid #3a3a3a; background: #333;
+        color: #cfcfcf; padding: 6px 12px; border-radius: 7px; cursor: pointer;
+        font: inherit;
+      }
+      button.v:hover { background: #3d3d3d; color: #fff; }
+      button.v[aria-pressed="true"] { background: #0d99ff; border-color: #0d99ff; color: #fff; }
+      label.tog { display: inline-flex; align-items: center; gap: 6px; cursor: pointer; user-select: none; }
+      .stage {
+        width: 512px; height: 720px; border: none; border-radius: 16px;
+        overflow: hidden; box-shadow: 0 12px 48px rgba(0,0,0,.5); background: #292929;
+      }
+      .hint { max-width: 512px; text-align: center; color: #6f6f6f; }
+      .hint code { color: #9a9a9a; background: #262626; padding: 1px 5px; border-radius: 4px; }
+    </style>
+  </head>
+  <body>
+    <div class="bar" id="bar">
+      <strong>View</strong>
+      <button class="v" data-view="platform">Environment</button>
+      <button class="v" data-view="scope">Components</button>
+      <button class="v" data-view="contract">Contracts</button>
+      <button class="v" data-view="template">Templates</button>
+      <span class="sep"></span>
+      <button class="v" data-view="transform">Transform</button>
+      <button class="v" data-view="validate">Validate</button>
+      <button class="v" data-view="publish">Publish</button>
+      <span class="sep"></span>
+      <label class="tog"><input type="checkbox" id="empty" /> Empty / first-run</label>
+    </div>
+
+    <iframe class="stage" id="stage" title="plugin UI"></iframe>
+
+    <p class="hint">
+      Mock host — fixtures live in this file. Switch views above (clicks the plugin's
+      own Nav rail). Add <code>?view=contract</code> to deep-link. Toggle
+      <em>Empty / first-run</em> for un-populated states.
+    </p>
+
+    <script>
+      // ─── Fixtures ────────────────────────────────────────────────────────────
+      // A populated run: 12 discovered component sets, 6 scoped, spanning the full
+      // per-stage status vocabulary (done · active · failed · skipped · pending →
+      // blocked derived) so every view renders something real.
+
+      var BACKEND_PROFILE = {
+        connector: {
+          id: 'backend', label: 'Backend', baseUrl: 'https://backend.example.com',
+          oauth: {
+            clientId: 'cc-processor-public', scope: 'mcp:read mcp:write',
+            register: '/api/oauth/register', authorize: '/api/oauth/authorize',
+            token: '/api/oauth/token', relayNew: '/api/oauth/relay/new',
+            relayStart: '/api/oauth/relay/start', relayPoll: '/api/oauth/relay/poll',
+            relayCallback: '/api/oauth/relay/callback',
+          },
+        },
+        features: {
+          run: { path: '/api/transformers/run', slug: 'code-connect-template', response: 'stream' },
+          publish: { path: '/api/adapters/figma/variables/publish' },
+        },
+      };
+
+      function ref(key, name, node) { return { componentKey: key, nodeId: node, name: name }; }
+      var MOUNTED = [
+        ref('key-button', 'Button', '10:2'),
+        ref('key-iconbutton', 'Icon Button', '10:4'),
+        ref('key-avatar', 'Avatar', '10:6'),
+        ref('key-avatargroup', 'Avatar Group', '10:8'),
+        ref('key-badge', 'Badge', '10:10'),
+        ref('key-checkbox', 'Checkbox', '10:12'),
+        ref('key-input', 'Input', '10:14'),
+        ref('key-select', 'Select', '10:16'),
+        ref('key-card', 'Card', '10:18'),
+        ref('key-tabs', 'Tabs', '10:20'),
+        ref('key-tooltip', 'Tooltip', '10:22'),
+        ref('key-banner', 'Banner', '10:24'),
+      ];
+      var SCOPE = ['key-button', 'key-avatar', 'key-badge', 'key-input', 'key-card', 'key-tabs']
+        .map(function (k) { return MOUNTED.filter(function (r) { return r.componentKey === k; })[0]; });
+
+      // Per-component stage statuses. Missing stages → 'pending'; 'blocked' is derived
+      // by the UI from an uncleared upstream, so we only set the raw ones.
+      function comp(ref, stages, errors) {
+        return { ref: ref, stages: stages, errors: errors || undefined };
+      }
+      var byKey = {};
+      MOUNTED.forEach(function (r) { byKey[r.componentKey] = r; });
+      var COMPONENTS = {
+        'key-button': comp(byKey['key-button'], { contract: 'done', transform: 'done', template: 'done', validate: 'done', publish: 'done' }),
+        'key-avatar': comp(byKey['key-avatar'], { contract: 'done', transform: 'done', template: 'done', validate: 'failed' },
+          { validate: '2 errors · prop “size” has no matching variant set' }),
+        'key-badge': comp(byKey['key-badge'], { contract: 'done', transform: 'skipped', template: 'done', validate: 'done', publish: 'pending' }),
+        'key-input': comp(byKey['key-input'], { contract: 'done', transform: 'active' }),
+        'key-card': comp(byKey['key-card'], { contract: 'active' }),
+        'key-tabs': comp(byKey['key-tabs'], { contract: 'pending' }),
+      };
+
+      var RUN_STATE = {
+        version: 1,
+        platform: { ready: true, validatedAt: 1758153600000, message: '' },
+        scope: SCOPE,
+        components: COMPONENTS,
+      };
+
+      var ENV = {
+        fileKey: 'aB3dEf6GhJ2kLmN9pQr4St',
+        restSaved: true,
+        cliSaved: false,
+        editorType: 'figma',
+        transformer: { connected: true, account: 'design-systems@figma.com', profile: BACKEND_PROFILE },
+      };
+
+      var EMPTY_RUN_STATE = { version: 1, platform: { ready: false }, scope: [], components: {} };
+      var EMPTY_ENV = {
+        fileKey: '', restSaved: false, cliSaved: false, editorType: 'figma',
+        transformer: { connected: false, account: '', profile: BACKEND_PROFILE },
+      };
+
+      // A realistic Code Connect template draft (Templates view) per component.
+      var DRAFTS = {
+        'key-button':
+          "import figma, { html } from '@figma/code-connect/html'\n\n" +
+          "/**\n * Code Connect — Button\n" +
+          " * figma: https://www.figma.com/design/aB3dEf6GhJ2kLmN9pQr4St/DS?node-id=10-2\n */\n" +
+          "figma.connect('Button', 'https://www.figma.com/design/aB3dEf6GhJ2kLmN9pQr4St/DS?node-id=10-2', {\n" +
+          "  props: {\n" +
+          "    label: figma.string('Label'),\n" +
+          "    variant: figma.enum('Variant', {\n" +
+          "      Primary: 'primary',\n" +
+          "      Secondary: 'secondary',\n" +
+          "      Ghost: 'ghost',\n" +
+          "    }),\n" +
+          "    disabled: figma.boolean('Disabled'),\n" +
+          "  },\n" +
+          "  example: ({ label, variant, disabled }) => html`\n" +
+          "    <button class=\"btn btn-${variant}\" ?disabled=${disabled}>${label}</button>\n" +
+          "  `,\n" +
+          "})\n",
+      };
+      var DEFAULT_DRAFT =
+        "import figma from '@figma/code-connect'\n\n" +
+        "// Paste or stream a Code Connect template here.\n";
+
+      // A stage-3 contract@1 blob (Contracts view read-only preview) per component.
+      function contractFor(r) {
+        return JSON.stringify({
+          $schema: 'cc-processor/contract@1',
+          component: r.name,
+          componentKey: r.componentKey,
+          nodeId: r.nodeId,
+          props: {
+            Label: { type: 'text', default: r.name },
+            Variant: { type: 'variant', options: ['Primary', 'Secondary', 'Ghost'], default: 'Primary' },
+            Disabled: { type: 'boolean', default: false },
+          },
+          generatedAt: '2026-09-18T00:00:00.000Z',
+        }, null, 2);
+      }
+
+      // ─── Host ↔ iframe wiring ────────────────────────────────────────────────
+      var stage = document.getElementById('stage');
+      var emptyToggle = document.getElementById('empty');
+
+      function useEmpty() { return emptyToggle.checked; }
+      function statePayload() {
+        return {
+          type: 'pipeline-state',
+          state: JSON.stringify(useEmpty() ? EMPTY_RUN_STATE : RUN_STATE),
+          config: '{}',
+          contractConfig: '{}',
+          env: useEmpty() ? EMPTY_ENV : ENV,
+          mounted: useEmpty() ? [] : MOUNTED,
+          selection: useEmpty() ? [] : ['key-avatar'],
+        };
+      }
+      function toIframe(msg) {
+        if (stage.contentWindow) stage.contentWindow.postMessage({ pluginMessage: msg }, '*');
+      }
+      function sendState() { toIframe(statePayload()); }
+
+      // Answer the requests ui.html makes, so nothing hangs waiting on the main thread.
+      window.addEventListener('message', function (e) {
+        var msg = e.data && e.data.pluginMessage;
+        if (!msg || !msg.type) return;
+        switch (msg.type) {
+          case 'pipeline-ready':
+            sendState();
+            // Honor a deep-link once the shell has painted.
+            if (deepLink) selectView(deepLink);
+            break;
+          case 'run-get-draft':
+            toIframe({ type: 'draft-content', componentKey: msg.componentKey,
+              text: DRAFTS[msg.componentKey] || DEFAULT_DRAFT });
+            break;
+          case 'run-get-contract': {
+            var r = byKey[msg.componentKey] || { name: 'Component', componentKey: msg.componentKey, nodeId: '' };
+            toIframe({ type: 'contract-content', componentKey: msg.componentKey, contract: contractFor(r) });
+            break;
+          }
+          case 'validate-semantic':
+            // No real Figma to check against — report clean so signals settle.
+            toIframe({ type: 'semantic-result', reqId: msg.reqId, findings: [] });
+            break;
+          case 'run-scope-toggle':
+            // Make the Components view interactive: flip membership + re-stream.
+            toggleScope(msg.key);
+            sendState();
+            break;
+          // Window-management + fire-and-forget messages: safely ignored.
+          default: break;
+        }
+      });
+
+      function toggleScope(key) {
+        if (useEmpty()) return;
+        var i = RUN_STATE.scope.map(function (r) { return r.componentKey; }).indexOf(key);
+        if (i >= 0) { RUN_STATE.scope.splice(i, 1); delete RUN_STATE.components[key]; }
+        else if (byKey[key]) {
+          RUN_STATE.scope.push(byKey[key]);
+          RUN_STATE.components[key] = comp(byKey[key], { contract: 'pending' });
+        }
+      }
+
+      // ─── View switcher (clicks the iframe's own Nav rail — same origin) ────────
+      var VIEW_ALIAS = {
+        environment: 'platform', components: 'scope', contracts: 'contract', templates: 'template',
+        platform: 'platform', scope: 'scope', contract: 'contract', template: 'template',
+        transform: 'transform', validate: 'validate', publish: 'publish',
+      };
+      function markActive(stageId) {
+        [].forEach.call(document.querySelectorAll('.v'), function (b) {
+          b.setAttribute('aria-pressed', String(b.getAttribute('data-view') === stageId));
+        });
+      }
+      function selectView(stageId, tries) {
+        tries = tries || 0;
+        var doc = stage.contentDocument;
+        var btn = doc && doc.querySelector('.cc-pl-step[data-stage="' + stageId + '"]');
+        if (btn) { btn.click(); markActive(stageId); return; }
+        if (tries < 40) setTimeout(function () { selectView(stageId, tries + 1); }, 50);
+      }
+
+      [].forEach.call(document.querySelectorAll('.v'), function (b) {
+        b.addEventListener('click', function () { selectView(b.getAttribute('data-view')); });
+      });
+      emptyToggle.addEventListener('change', function () {
+        sendState();
+        var active = document.querySelector('.v[aria-pressed="true"]');
+        if (active) selectView(active.getAttribute('data-view'));
+      });
+
+      // Deep-link (?view=contract) — applied after pipeline-ready.
+      var params = new URLSearchParams(location.search);
+      var deepLink = params.get('view') ? VIEW_ALIAS[params.get('view').toLowerCase()] : null;
+
+      // Boot the iframe. Absolute path: ui.html sits at the served root, while this
+      // host is under /.figma/make/ — same origin, so the view switcher can still
+      // reach into stage.contentDocument.
+      stage.src = '/ui.html';
+    </script>
+  </body>
+</html>

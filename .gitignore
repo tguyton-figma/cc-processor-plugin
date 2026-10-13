@@ -1,0 +1,9 @@
+# Local Claude Code / Make Local settings
+.claude/settings.local.json
+
+# Dependencies
+node_modules/
+
+# Make Local build temp dirs and machine-generated tooling metadata
+.figma/make/.*-tmp/
+.figma/make/dev.json
